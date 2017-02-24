@@ -3,6 +3,7 @@
 var escapeRegExp = require('escape-string-regexp');
 var objectAssign = require('object-assign');
 var Transform = require('readable-stream/transform');
+var StringDecoder = require('string_decoder').StringDecoder;
 
 module.exports = function ReplaceStream(search, replace, options) {
   var tail = '';
@@ -27,13 +28,15 @@ module.exports = function ReplaceStream(search, replace, options) {
     options.maxMatchLen = search.length;
   }
 
+  var decoder = new StringDecoder(options.encoding);
+
   function transform(buf, enc, cb) {
     var matches;
     var lastPos = 0;
     var runningMatch = '';
     var matchCount = 0;
     var rewritten = '';
-    var haystack = tail + buf.toString(options.encoding);
+    var haystack = tail + decoder.write(buf);
     tail = '';
 
     while (totalMatches < options.limit &&
